@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "../context/UserContext"; // Import the user context
-import axios from "axios";
+import { useRecoilValue, useRecoilState } from "recoil";
+import { usePosts } from "../atoms/usePosts";
+import { userState } from "../atoms/userAtom";
 
-const AddPost = ({ addPosts }) => {
-  const { user } = useUser(); // Get the user data from context
+
+const AddPost = () => {
+  const user = useRecoilValue(userState); // Access user state via Recoil
+  const {addPost} = usePosts();
+
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,7 +27,7 @@ const AddPost = ({ addPosts }) => {
 
     const newPost = {
       
-      userID: user.userID, // User ID from context
+      userId: user.id, // User ID from context
       title,
       content,
     };
@@ -32,20 +36,11 @@ const AddPost = ({ addPosts }) => {
       setLoading(true);
 
       // Send the post to the backend
-      console.log(newPost)
-      const response = await axios.post("http://localhost/cpsc2221/posts", newPost);
-      const createdPost = response.data.post;
-      // Update the posts state in the parent component
-      if (addPosts) {
-        // addPosts({...newPost, username: user.name, email: user.email, datePublished: new Date().toISOString().slice(0, 19).replace('T', ' ')});
-        addPosts(createdPost)
-      }
-
-      alert("Post added successfully!");
+      await addPost(newPost);
       navigate("/"); // Redirect to home or posts page
     } catch (error) {
       console.error("Failed to save the post:", error);
-      alert("Failed to save the post. Please try again.");
+      console.log("Failed to save the post. Please try again.");
     } finally {
       setLoading(false);
     }

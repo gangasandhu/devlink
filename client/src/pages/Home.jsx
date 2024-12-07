@@ -1,17 +1,31 @@
-import { useState, useEffect } from "react";
-import HomePost from "../components/HomePost";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { userState } from "../atoms/userAtom";
+import { postsState } from '../atoms/postsAtom';
+
 import { Link } from "react-router-dom";
 import { IoMdAddCircle } from "react-icons/io";
+import HomePost from "../components/HomePost";
+import { useEffect } from "react";
 import axios from "axios";
-import { useUser } from "../context/UserContext";
 
-const Home = ({posts}) => {
-  const { user, setUser } = useUser(); // User context
-  
+const Home = () => {
+  const user = useRecoilValue(userState); // Access user state via Recoil
+  const [posts, setPosts] = useRecoilState(postsState); 
 
-  // TODO: for connection to backend
-  // if (loading) return <div>Loading...</div>;
-  // if (error) return <div>{error}</div>;
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+       
+        const response = await axios.get("http://localhost:3000/posts");
+        setPosts(response.data);
+        
+      } catch (err) {
+       
+        console.log(err)
+      }
+    };
+    fetchPosts();
+  }, []);
 
   return (
     <div className="p-6">
@@ -21,19 +35,21 @@ const Home = ({posts}) => {
       </div>
 
       <ul className="p-4 flex flex-wrap gap-4 justify-center">
-        {user && <li>
-          {/* Link to add a new post */}
-          <Link to="/addPost">
-            <button className="px-4 py-3 rounded border-2 border-blue-400 flex gap-x-2 w-96 h-full text-blue-400 justify-center items-center">
-              Add a post <IoMdAddCircle className="text-3xl" />
-            </button>
-          </Link>
-        </li>}
+        {user && (
+          <li>
+            {/* Link to add a new post */}
+            <Link to="/addPost">
+              <button className="px-4 py-3 rounded border-2 border-blue-400 flex gap-x-2 w-96 h-full text-blue-400 justify-center items-center">
+                Add a post <IoMdAddCircle className="text-3xl" />
+              </button>
+            </Link>
+          </li>
+        )}
 
-        {/* All of the posts */}
+        {/* Render all posts */}
         {posts && posts.map((post) => (
-          <li key={post.postID}>
-            <Link to={`/ViewPost/${post.postID}`}>
+          <li key={post.id}>
+            <Link to={`/ViewPost/${post.id}`}>
               <HomePost post={post} />
             </Link>
           </li>

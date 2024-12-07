@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useUser } from "../context/UserContext"; // Assuming you have UserContext for user info
+import { useRecoilState, useRecoilValue } from "recoil";
+import { userState } from "../atoms/userAtom";
+import { postsState } from '../atoms/postsAtom';
+import { usePosts } from "../atoms/usePosts";
 
-const UserPostsPage = ({posts, deletePost}) => {
-    const { user } = useUser(); // Get logged-in user details
+
+const UserPostsPage = () => {
+    const user = useRecoilValue(userState); // Access user state via Recoil
+    const posts = useRecoilValue(postsState); // Access posts state via Recoil
+    const {deletePost} = usePosts(); // Access editPost and deletePost functions
     
 
     const [userPosts, setUserPosts] = useState([]); // Local state for user's posts
@@ -11,13 +17,11 @@ const UserPostsPage = ({posts, deletePost}) => {
     // Filter posts by logged-in user
     useEffect(() => {
         if (user) {
-            const filteredPosts = posts.filter((post) => post.userID === user.userID);
+            const filteredPosts = posts.filter((post) => post.userId === user.id);
             setUserPosts(filteredPosts);
         }
-    }, [user, posts]);
+    }, []);
 
-    // Handle Delete Post
-   
 
     return (
         <div className="max-w-4xl mx-auto my-8 p-6 bg-white shadow-lg rounded-lg">
@@ -27,20 +31,20 @@ const UserPostsPage = ({posts, deletePost}) => {
                 <ul className="space-y-4">
                     {userPosts.map((post) => (
                         <li
-                            key={post.postID}
+                            key={post.id}
                             className="p-4 border rounded-lg shadow hover:shadow-md"
                         >
                             <div className="flex justify-between items-center">
                                 <h3 className="text-lg font-semibold text-gray-800">{post.title}</h3>
                                 <div className="space-x-2">
                                     <Link
-                                        to={`/editpost/${post.postID}`}
+                                        to={`/editpost/${post.id}`}
                                         className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
                                     >
                                         Edit
                                     </Link>
                                     <button
-                                        onClick={() => deletePost(post.postID)}
+                                        onClick={() => deletePost(post.id)}
                                         className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
                                     >
                                         Delete

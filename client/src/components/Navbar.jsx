@@ -1,14 +1,28 @@
 import React, { useState } from "react";
-import { useUser } from "../context/UserContext";
-import { Link } from "react-router-dom";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { userState } from "../atoms/userAtom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Navbar = () => {
-  const { user, setUser } = useUser(); // User context
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const user = useRecoilValue(userState); // Access user state
+  const setUser = useSetRecoilState(userState); // Update user state
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Manage dropdown state
+  const navigate = useNavigate(); 
 
-  const handleLogout = () => {
-    setUser(null); // Clears the user state on logout
-    setIsDropdownOpen(false); // Close dropdown after logout
+  const handleLogout = async () => {
+    try {
+      // Call the backend to clear the authToken cookie
+      await axios.post("http://localhost:3000/auth/logout", {}, { withCredentials: true });
+
+      // Clear the user state after successful logout
+      setUser(null);
+      setIsDropdownOpen(false); // Close dropdown after logout
+      navigate("/auth"); // Redirect to the auth page
+    } catch (err) {
+      console.error("Error during logout:", err);
+      alert("Failed to logout. Please try again.");
+    }
   };
 
   const toggleDropdown = () => {
@@ -52,16 +66,14 @@ const Navbar = () => {
                   {/* Avatar */}
                   <div
                     className="h-8 w-8 flex items-center justify-center rounded-full bg-gray-600 text-white font-medium cursor-pointer"
-                    title={user.name}
+                    title={user.username}
                     onClick={toggleDropdown}
                   >
-                    {user.name[0].toUpperCase()}
+                    {user.username[0].toUpperCase()}
                   </div>
                   <span className="text-gray-300 ml-2 text-sm font-medium">
-                    {user.name}
+                    {user.username}
                   </span>
-                  {/* Dropdown */}
-
                 </div>
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-10">
@@ -94,7 +106,6 @@ const Navbar = () => {
                       </li>
                     </ul>
                   </div>
-
                 )}
               </div>
             ) : (

@@ -3,54 +3,16 @@ import { FaRegComment } from "react-icons/fa";
 import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "../context/UserContext";
+import { useRecoilState } from "recoil";
+import { userState } from "../atoms/userAtom";
 
-const BlogPost = ({ post, comments, setComments }) => {
-  const [newComment, setNewComment] = useState("");
-  // const [allComments, setAllComments] = useState([]);
-  const [isFollowing, setIsFollowing] = useState(post.isFollowing || false);
+const BlogPost = ({ post, comments, setComments, newComment, setNewComment, addComment, isFollowing, toggleFollow }) => {
   const navigate = useNavigate();
-  const { user } = useUser();
-
-  // This function is for adding a new comment to the post
-  // TODO: for connection to backend
-  const addComment = async () => {
-    if (!newComment.trim()) return;
-
-    try {
-      const savedComment = {
-        postID: post.postID,
-        userID: post.userID,
-        content: newComment,
-      }
-      const response = await axios.post(`http://localhost/cpsc2221/comments`, savedComment);
-
-      setComments((prevComments) => [...prevComments, {...savedComment, username: user.name}]);
-      setNewComment("");
-    } catch (error) {
-      console.error("Failed to add comment:", error);
-    }
-  };
-
-  // This function is to update the follow user button
-  const toggleFollow = async () => {
-    // TODO: for connection to backend and if the user is logged in
-    // try {
-    //   await axios.post(`/api/follow`, {
-    //     userID: post.userID,
-    //     follow: !isFollowing,
-    //   });
-
-    //   setIsFollowing((prev) => !prev);
-    // } catch (error) {
-    //   console.error("Failed to toggle follow status:", error);
-    // }
-    setIsFollowing((prev) => !prev);
-  };
+  const [ user, setUser ] = useRecoilState(userState);
 
   // This function is to edit post on EditPost page
   const handleEdit = () => {
-    navigate(`/EditPost/${post.id}`);
+    navigate(`/EditPost/${post.postID}`);
   };
 
   return (
@@ -63,7 +25,7 @@ const BlogPost = ({ post, comments, setComments }) => {
           </div>
 
           {/* Follow user button */}
-          {user && user.id !== post.userID && (
+          {user && user.id !== post.userId && (
             <button
               className={`border-2 border-solid px-3 py-2 w-28 rounded-3xl font-semibold ${
                 isFollowing
@@ -78,7 +40,7 @@ const BlogPost = ({ post, comments, setComments }) => {
         </div>
 
         {/* Edit post button */}
-        {user && user.id === post.userID && (
+        {user && user.id === post.userId && (
           <button className="text-2xl" onClick={handleEdit}>
             <IoIosMore />
           </button>
@@ -116,7 +78,6 @@ const BlogPost = ({ post, comments, setComments }) => {
             onChange={(e) => setNewComment(e.target.value)}
           />
           <button
-            // TODO: for connection to backend
             onClick={addComment}
             className="border-2 border-solid border-gray-500 px-2 py-1 rounded-3xl text-gray-500 font-semibold"
           >

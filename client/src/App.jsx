@@ -14,52 +14,30 @@ import AddPost from "./pages/AddPost";
 
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useRecoilState } from 'recoil';
+import { userState } from './atoms/userAtom';
+import { postsState } from './atoms/postsAtom';
 
 function App() {
-
-  const [posts, setPosts] = useState(null);
-  // TODO: for connection to backend
-  // const [loading, setLoading] = useState(true);
-  // const [error, setError] = useState(null);
-
-  // TODO: for connection to backend
-  /**
-   * Assuming this backend API structure
-   * [
-  {
-    "postID": 1,
-    "title": "Post Title 1",
-    "content": "Lorem ipsum...",
-    "datePublished": "2024-11-23",
-    "userID": 1,
-    "username": "@user1",
-    "email": "user1@email.com",
-    "postType": "Article",
-    "contentType": "Text"
-  },
-  ...
-]
-   */
+  const [user, setUser] = useRecoilState(userState);
+  const [posts, setPosts] = useRecoilState(postsState); 
+  
 
   useEffect(() => {
-    // TODO: for connection to backend
-    const fetchPosts = async () => {
+    const checkSession = async () => {
       try {
-       
-        const response = await axios.get("http://localhost:3000/posts");
-        setPosts(response.data);
-        
+        const response = await axios.get('http://localhost:3000/auth/check-session');
+        setUser(response.data.user);
       } catch (err) {
-       
-        console.log(err)
+        setUser(null);
       }
     };
-    fetchPosts();
+
+    checkSession();
+    // TODO: for connection to backend
+   
   }, []);
 
-  const addPosts = (post) => {
-    setPosts([...posts, post])
-  }
 
   const deletePost = async (postID) => {
     if (window.confirm("Are you sure you want to delete this post?")) {
@@ -86,7 +64,7 @@ function App() {
       <Navbar />
       <Routes>
         
-        <Route path="/" element={<Home posts={posts} />} />
+        <Route path="/" element={<Home />} />
         {posts && <Route path="/ViewPost/:id" element={<ViewPost posts={posts} />} />}
         <Route path="/auth" element={<AuthPage />} />
       
@@ -94,7 +72,7 @@ function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/dashboard" element={<UserPostsPage posts={posts} deletePost={deletePost} />} />
 
-        <Route path="/addPost" element={<AddPost addPosts={addPosts}/>} />
+        <Route path="/addPost" element={<AddPost />} />
         <Route path="/EditPost/:id" element={<EditPost posts={posts} setPosts={setPosts} />} />
         <Route path="/about" element={<AboutPage />} />
 
