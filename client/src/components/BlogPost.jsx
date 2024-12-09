@@ -1,18 +1,56 @@
 import { IoIosMore } from "react-icons/io";
 import { FaRegComment } from "react-icons/fa";
 import axios from "axios";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
 import { userState } from "../atoms/userAtom";
 
-const BlogPost = ({ post, comments, setComments, newComment, setNewComment, addComment, isFollowing, toggleFollow }) => {
+const BlogPost = ({ post, isFollowing, toggleFollow }) => {
   const navigate = useNavigate();
-  const [ user, setUser ] = useRecoilState(userState);
+  const [user] = useRecoilState(userState);
 
-  // This function is to edit post on EditPost page
+  const [comments, setComments] = useState([]); // State for comments
+  const [newComment, setNewComment] = useState(""); // State for new comment
+
+  // Fetch comments when the component mounts
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        const response = await axios.get(`http://localhost:3000/comments/${post.id}`);
+        setComments(response.data);
+      } catch (error) {
+        console.error("Failed to fetch comments:", error);
+      }
+    };
+
+    fetchComments();
+  }, [post.postID]);
+
+  // Function to add a new comment
+  const addComment = async () => {
+    if (!newComment.trim()) {
+      alert("Comment cannot be empty");
+      return;
+    }
+
+    try {
+      const response = await axios.post("http://localhost:3000/comments", {
+        postId: post.id,
+        userId: user.id,
+        content: newComment,
+      });
+      setComments((prevComments) => [...prevComments, response.data]); // Add new comment to state
+      setNewComment(""); // Clear input
+    } catch (error) {
+      console.error("Failed to add comment:", error);
+      alert("Failed to add comment. Please try again.");
+    }
+  };
+
+  // Function to edit the post
   const handleEdit = () => {
-    navigate(`/EditPost/${post.postID}`);
+    navigate(`/EditPost/${post.id}`);
   };
 
   return (
@@ -70,19 +108,21 @@ const BlogPost = ({ post, comments, setComments, newComment, setNewComment, addC
       <div className="flex flex-col justify-around">
         <div className="pb-3">
           <h2 className="text-lg font-medium pb-1">Comments</h2>
-          <input
-            type="text"
-            placeholder="Write a comment..."
-            className="border px-2 py-1 flex-grow rounded"
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-          />
-          <button
-            onClick={addComment}
-            className="border-2 border-solid border-gray-500 px-2 py-1 rounded-3xl text-gray-500 font-semibold"
-          >
-            Add
-          </button>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Write a comment..."
+              className="border px-2 py-1 flex-grow rounded"
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+            />
+            <button
+              onClick={addComment}
+              className="border-2 border-solid border-gray-500 px-4 py-1 rounded-3xl text-gray-500 font-semibold"
+            >
+              Add
+            </button>
+          </div>
         </div>
 
         {/* Displaying comments / or no comments if there are none */}
@@ -91,12 +131,12 @@ const BlogPost = ({ post, comments, setComments, newComment, setNewComment, addC
             <ul className="flex flex-col gap-y-4">
               {comments.map((comment) => (
                 <li
-                  key={comment.commentID}
+                  key={comment.id}
                   className="bg-gray-100 px-4 py-2 rounded shadow-sm"
                 >
                   <div className="flex justify-between items-center">
                     <h3 className="font-semibold">{comment.username}</h3>
-                    <p className="text-gray-500 text-sm">{comment.date}</p>
+                    <p className="text-gray-500 text-sm">{new Date(comment.datePublished).toLocaleString()}</p>
                   </div>
                   <p className="whitespace-pre-wrap mt-2">{comment.content}</p>
                 </li>

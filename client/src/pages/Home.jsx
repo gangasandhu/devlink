@@ -12,20 +12,20 @@ const Home = () => {
   const user = useRecoilValue(userState); // Access user state via Recoil
   const [posts, setPosts] = useRecoilState(postsState); 
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
+  // useEffect(() => {
+  //   const fetchPosts = async () => {
+  //     try {
        
-        const response = await axios.get("http://localhost:3000/posts");
-        setPosts(response.data);
+  //       const response = await axios.get("http://localhost:3000/posts");
+  //       setPosts(response.data);
         
-      } catch (err) {
+  //     } catch (err) {
        
-        console.log(err)
-      }
-    };
-    fetchPosts();
-  }, []);
+  //       console.log(err)
+  //     }
+  //   };
+  //   fetchPosts();
+  // }, []);
 
   return (
     <div className="p-6">
@@ -49,7 +49,7 @@ const Home = () => {
         {/* Render all posts */}
         {posts && posts.map((post) => (
           <li key={post.id}>
-            <Link to={`/ViewPost/${post.id}`}>
+            <Link to={`/post/${post.id}`}>
               <HomePost post={post} />
             </Link>
           </li>

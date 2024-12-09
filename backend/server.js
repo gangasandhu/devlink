@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import postRoutes from './routes/postRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import commentsRouter from './routes/commentsRouter.js';
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use(cookieParser());
 app.use('/posts', postRoutes);
 app.use('/users', userRoutes);
 app.use('/auth', authRoutes);
+app.use('/comments', commentsRouter);
 
 
 // Start Server

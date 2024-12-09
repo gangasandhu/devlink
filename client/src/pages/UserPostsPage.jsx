@@ -1,27 +1,55 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilValue } from "recoil";
 import { userState } from "../atoms/userAtom";
-import { postsState } from '../atoms/postsAtom';
 import { usePosts } from "../atoms/usePosts";
-
 
 const UserPostsPage = () => {
     const user = useRecoilValue(userState); // Access user state via Recoil
-    const posts = useRecoilValue(postsState); // Access posts state via Recoil
-    const {deletePost} = usePosts(); // Access editPost and deletePost functions
-    
+    const { deletePost, getPostsByUser } = usePosts(); // Access deletePost and getPostsByUser functions
 
     const [userPosts, setUserPosts] = useState([]); // Local state for user's posts
+    const [loading, setLoading] = useState(true); // Loading state
+    const [error, setError] = useState(null); // Error state
 
-    // Filter posts by logged-in user
+    // Fetch user's posts from API
     useEffect(() => {
-        if (user) {
-            const filteredPosts = posts.filter((post) => post.userId === user.id);
-            setUserPosts(filteredPosts);
-        }
-    }, []);
+        const fetchUserPosts = async () => {
+            if (user) {
+                try {
+                    const posts = await getPostsByUser(user.id); // Fetch posts by user ID
+                    setUserPosts(posts);
+                } catch (err) {
+                    console.error("Failed to fetch user posts:", err);
+                    setError("Failed to load posts. Please try again later.");
+                } finally {
+                    setLoading(false);
+                }
+            } else {
+                setLoading(false);
+            }
+        };
 
+        fetchUserPosts();
+    }, [user, getPostsByUser]);
+
+    // Render loading state
+    if (loading) {
+        return (
+            <div className="max-w-4xl mx-auto my-8 p-6 bg-white shadow-lg rounded-lg">
+                <p className="text-gray-500">Loading your posts...</p>
+            </div>
+        );
+    }
+
+    // Render error state
+    if (error) {
+        return (
+            <div className="max-w-4xl mx-auto my-8 p-6 bg-white shadow-lg rounded-lg">
+                <p className="text-red-500">{error}</p>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-4xl mx-auto my-8 p-6 bg-white shadow-lg rounded-lg">

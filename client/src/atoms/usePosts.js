@@ -30,10 +30,53 @@ export const usePosts = () => {
     }
   };
 
+  // Function to get all posts by a user
+  const getPostsByUser = async (userId) => {
+    try {
+      const response = await axios.get(`http://localhost:3000/posts?userId=${userId}`);
+      return response.data; // Returns the posts for the specified user
+    } catch (error) {
+      console.error('Failed to fetch posts by user:', error);
+      alert('Failed to fetch posts. Please try again.');
+      return [];
+    }
+  };
+
+  const getPostById = async (id) => {
+    try {
+      const response = await axios.get(`http://localhost:3000/posts/${id}`);
+      return response.data; // Returns the posts for the specified user
+    } catch (error) {
+      console.error('Failed to fetch the post:', error);
+      alert('Failed to fetch the post. Please try again.');
+      return [];
+    }
+  };
+
+  // Function to update a post
+  const updatePost = async (id, updatedPost) => {
+    try {
+      await axios.put(`http://localhost:3000/posts/${id}`, updatedPost);
+
+      // Update the local Recoil state
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post.id === parseInt(id) ? { ...post, ...updatedPost } : post
+        )
+      );
+    } catch (error) {
+      console.error('Failed to update post:', error);
+      throw error; // Rethrow the error to handle it in the caller
+    }
+  };
+
   return {
     posts,
     addPost,
     deletePost,
     setPosts, // If you need to set posts directly in certain scenarios
+    getPostsByUser,
+    getPostById,
+    updatePost,
   };
 };

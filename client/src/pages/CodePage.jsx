@@ -8,12 +8,13 @@ import "react-toastify/dist/ReactToastify.css";
 import EditorConfig from '../components/EditorConfig';
 import '../styles/home.css';
 import axios from 'axios';
-import { useUser } from "../context/UserContext";
+import { useRecoilState, useRecoilValue } from 'recoil';
+import { userState } from '../atoms/userAtom';
 
 
 const CodePage = () => {
   // code editor states
-  const { user } = useUser();
+  const user = useRecoilValue(userState);
   const [value, setValue] = useState(null);
   const [selectedLanguage, setSelectedLanguage] = useState(languageOptions[0]);
   const [processing, setProcessing] = useState(null);
@@ -42,7 +43,7 @@ const CodePage = () => {
     };
 
     if (user) {
-      fetchSavedCode();
+      // fetchSavedCode();
     }
   }, [user]);
 

@@ -39,41 +39,21 @@ function App() {
   }, []);
 
 
-  const deletePost = async (postID) => {
-    if (window.confirm("Are you sure you want to delete this post?")) {
-        try {
-            // Delete the post from the database
-            alert(postID)
-            await axios.delete(`http://localhost/cpsc2221/posts/${postID}`);
-
-            // Remove the post from the local state
-            const updatedPosts = posts.filter((post) => post.postID !== postID);
-            setPosts(updatedPosts);
-
-            
-        } catch (error) {
-            console.error("Failed to delete post:", error);
-            alert("Failed to delete the post. Please try again.");
-        }
-    }
-};
-
-
   return (
     <BrowserRouter>
       <Navbar />
       <Routes>
         
         <Route path="/" element={<Home />} />
-        {posts && <Route path="/ViewPost/:id" element={<ViewPost posts={posts} />} />}
+        {posts && <Route path="/post/:id" element={<ViewPost posts={posts} />} />}
         <Route path="/auth" element={<AuthPage />} />
       
-        <Route path="/codeedit" element={<CodePage />} />
+        <Route path="/code-editor" element={<CodePage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/dashboard" element={<UserPostsPage posts={posts} deletePost={deletePost} />} />
+        <Route path="/dashboard" element={<UserPostsPage  />} />
 
         <Route path="/addPost" element={<AddPost />} />
-        <Route path="/EditPost/:id" element={<EditPost posts={posts} setPosts={setPosts} />} />
+        <Route path="/editpost/:id" element={<EditPost />} />
         <Route path="/about" element={<AboutPage />} />
 
       </Routes>
