@@ -1,125 +1,58 @@
-import { useRecoilState, useRecoilValue } from "recoil";
+import React, { useState } from "react";
+import { useRecoilValue } from "recoil";
 import { userState } from "../atoms/userAtom";
 import { postsState } from "../atoms/postsAtom";
-
+import HeroSection from "../components/HeroSection";
+import SearchBar from "../components/SearchBar";
+import HomePost from "../components/HomePost";
 import { Link } from "react-router-dom";
 import { IoMdAddCircle } from "react-icons/io";
-import HomePost from "../components/HomePost";
-import { useState, useEffect } from "react";
-import axios from "axios";
 
 const Home = () => {
-  const user = useRecoilValue(userState); // Access user state via Recoil
+  const user = useRecoilValue(userState);
   const posts = useRecoilValue(postsState);
 
-  // Search and filter states
   const [searchQuery, setSearchQuery] = useState("");
-  const [filter, setFilter] = useState({
-    category: "All",
-    author: "All",
-  });
+  const [searchType, setSearchType] = useState("title"); // "title" or "author"
 
-  const [categories, setCategories] = useState([]); // For dynamic category filters
-  const [authors, setAuthors] = useState([]); // For dynamic author filters
-
-  // Fetch categories and authors dynamically
-  useEffect(() => {
-    const fetchFilters = async () => {
-      try {
-        const uniqueCategories = [...new Set(posts.map((post) => post.category || "Uncategorized"))];
-        const uniqueAuthors = [...new Set(posts.map((post) => post.username || "Unknown"))];
-        setCategories(uniqueCategories);
-        setAuthors(uniqueAuthors);
-      } catch (error) {
-        console.error("Failed to fetch filters:", error);
-      }
-    };
-
-    fetchFilters();
-  }, [posts]);
-
-  // Filtered and searched posts
+  // Filter posts based on search query and type
   const filteredPosts = posts.filter((post) => {
-    const matchesSearch = searchQuery
-      ? post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.content.toLowerCase().includes(searchQuery.toLowerCase())
-      : true;
-
-    const matchesCategory = filter.category === "All" || post.category === filter.category;
-    const matchesAuthor = filter.author === "All" || post.username === filter.author;
-
-    return matchesSearch && matchesCategory && matchesAuthor;
+    if (searchType === "title") {
+      return post.title.toLowerCase().includes(searchQuery.toLowerCase());
+    } else if (searchType === "author") {
+      return post.username.toLowerCase().includes(searchQuery.toLowerCase());
+    }
+    return true;
   });
 
   return (
-    <div className="p-6">
-      <div className="text-center py-10">
-        <h1 className="text-4xl font-extrabold text-gray-800">DevLink</h1>
-        <h3 className="text-2xl font-thin">Explore</h3>
-      </div>
+    <div className="bg-gray-100 min-h-screen">
+      {/* Hero Section */}
+      <HeroSection user={user} />
 
-      {/* Search and Filter Controls */}
-      <div className="flex flex-wrap gap-4 mb-6 justify-center">
-        <input
-          type="text"
-          placeholder="Search posts..."
-          className="border px-3 py-2 rounded w-full max-w-sm"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
+      {/* Search Bar */}
+      <SearchBar
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        searchType={searchType}
+        setSearchType={setSearchType}
+      />
 
-        <select
-          className="border px-3 py-2 rounded w-full max-w-sm"
-          value={filter.category}
-          onChange={(e) => setFilter((prev) => ({ ...prev, category: e.target.value }))}
-        >
-          <option value="All">All Categories</option>
-          {categories.map((category) => (
-            <option key={category} value={category}>
-              {category}
-            </option>
-          ))}
-        </select>
-
-        <select
-          className="border px-3 py-2 rounded w-full max-w-sm"
-          value={filter.author}
-          onChange={(e) => setFilter((prev) => ({ ...prev, author: e.target.value }))}
-        >
-          <option value="All">All Authors</option>
-          {authors.map((author) => (
-            <option key={author} value={author}>
-              {author}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <ul className="p-4 flex flex-wrap gap-4 justify-center">
-        {user && (
-          <li>
-            {/* Link to add a new post */}
-            <Link to="/addPost">
-              <button className="px-4 py-3 rounded border-2 border-blue-400 flex gap-x-2 w-96 h-full text-blue-400 justify-center items-center">
-                Add a post <IoMdAddCircle className="text-3xl" />
-              </button>
-            </Link>
-          </li>
-        )}
-
-        {/* Render filtered posts */}
-        {filteredPosts.length > 0 ? (
-          filteredPosts.map((post) => (
-            <li key={post.id}>
-              <Link to={`/post/${post.id}`}>
+      {/* Posts Section */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          {filteredPosts.length > 0 ? (
+            filteredPosts.map((post) => (
+              <li key={post.id} className="col-span-1">
                 <HomePost post={post} />
-              </Link>
-            </li>
-          ))
-        ) : (
-          <p className="text-gray-500 text-center">No posts found</p>
-        )}
-      </ul>
+              </li>
+            ))
+          ) : (
+            <p className="col-span-full text-gray-500 text-center">No posts found</p>
+          )}
+        </ul>
+      </div>
     </div>
   );
 };

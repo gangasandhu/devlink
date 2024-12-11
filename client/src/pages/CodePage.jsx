@@ -1,41 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import CodeEditor from '../components/CodeEditor';
-import OutputBox from '../components/OutputBox';
-import { getOutputStatus, getOutputToken } from '../services/compileApi';
-import languageOptions from '../constants/languageOptions';
+import React, { useState, useEffect } from "react";
+import CodeEditor from "../components/CodeEditor";
+import OutputBox from "../components/OutputBox";
+import { getOutputStatus, getOutputToken } from "../services/compileApi";
+import languageOptions from "../constants/languageOptions";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import EditorConfig from '../components/EditorConfig';
-import '../styles/home.css';
-import axios from 'axios';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import { userState } from '../atoms/userAtom';
-
+import EditorConfig from "../components/EditorConfig";
+import axios from "axios";
+import { useRecoilValue } from "recoil";
+import { userState } from "../atoms/userAtom";
 
 const CodePage = () => {
-  // code editor states
   const user = useRecoilValue(userState);
-  const [value, setValue] = useState(null);
+  const [value, setValue] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState(languageOptions[0]);
-  const [processing, setProcessing] = useState(null);
+  const [processing, setProcessing] = useState(false);
   const [customInput, setCustomInput] = useState("");
   const [outputDetails, setOutputDetails] = useState("");
+  const [theme, setTheme] = useState("dark");
 
   useEffect(() => {
     const fetchSavedCode = async () => {
       try {
-        // Fetch all codes from the backend
         const response = await axios.get("http://localhost/cpsc2221/code");
         const allCodes = response.data;
-        console.log(allCodes)
-        // Filter by the current user's userID and sort by most recent
-        const userCodes = allCodes
-          .filter((code) => code.userID === user.userID); // Assuming `dateSaved` exists
-
-          console.log(userCodes)
-        // Set the value to the most recent code, if available
+        const userCodes = allCodes.filter(
+          (code) => code.userID === user.userID
+        );
         if (userCodes.length > 0) {
-          setValue(userCodes[userCodes.length - 1].content); // Assuming `codeContent` is the code field
+          setValue(userCodes[userCodes.length - 1].content);
         }
       } catch (error) {
         console.error("Failed to fetch saved codes:", error);
@@ -67,15 +60,15 @@ const CodePage = () => {
       const token = await getOutputToken(sourceCode, languageId, customInput);
       getSubmission(token);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       setProcessing(false);
     }
   };
 
   const getSubmission = async (token) => {
     try {
-      let response = await getOutputStatus(token);
-      let statusId = response.data.status?.id;
+      const response = await getOutputStatus(token);
+      const statusId = response.data.status?.id;
 
       if (statusId === 1 || statusId === 2) {
         setTimeout(() => {
@@ -86,13 +79,17 @@ const CodePage = () => {
         setProcessing(false);
         setOutputDetails(response.data);
         showSuccessToast(`Compiled Successfully!`);
-        return;
       }
     } catch (error) {
       console.error(error);
       setProcessing(false);
       showErrorToast();
     }
+  };
+
+  const changeTheme = (newTheme) => {
+    setTheme(newTheme === "dark" ? "dark" : "light");
+    document.documentElement.classList.toggle("dark", newTheme === "dark");
   };
 
   const showSuccessToast = (msg) => {
@@ -107,10 +104,10 @@ const CodePage = () => {
     });
   };
 
-  const showErrorToast = (msg, timer) => {
-    toast.error(msg || `Something went wrong! Please try again.`, {
+  const showErrorToast = (msg) => {
+    toast.error(msg || `Something went wrong!`, {
       position: "top-right",
-      autoClose: timer ? timer : 1000,
+      autoClose: 1000,
       hideProgressBar: false,
       closeOnClick: true,
       pauseOnHover: true,
@@ -120,39 +117,37 @@ const CodePage = () => {
   };
 
   return (
-    <div data-testid="website" className="p-4 bg-gray-100">
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
-      <div className="flex justify-between items-center mb-4">
-        <EditorConfig handleLanguageChange={handleLanguageChange} />
-        <button
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          onClick={runCode}
-        >
-          Run
-        </button>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="md:col-span-2">
+    <div
+      className={`min-h-screen p-8 flex flex-col ${
+        theme === "dark" ? "bg-neutral-950 text-white" : "bg-gray-100 text-gray-900"
+      }`}
+    >
+      <ToastContainer />
+        <EditorConfig
+          handleLanguageChange={handleLanguageChange}
+          changeTheme={changeTheme}
+          theme={theme}
+        />
+      <main className="flex-grow p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <section className="md:col-span-2 flex flex-col">
           <CodeEditor
             handleEditorChange={handleEditorChange}
             selectedLanguage={selectedLanguage.value}
             value={value}
+            theme={theme}
           />
-        </div>
-        <div>
-          <OutputBox outputDetails={outputDetails} processing={processing} />
-        </div>
-      </div>
+          <button
+            className="mt-4 bg-gray-800 text-white px-4 py-2 rounded hover:bg-blue-600"
+            onClick={runCode}
+            disabled={processing}
+          >
+            {processing ? "Running..." : "Run Code"}
+          </button>
+        </section>
+        <section className="flex flex-col space-y-4">
+          <OutputBox outputDetails={outputDetails} processing={processing} theme={theme}/>
+        </section>
+      </main>
     </div>
   );
 };
