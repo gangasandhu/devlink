@@ -2,7 +2,7 @@ import { IoIosMore } from "react-icons/io";
 import { FaRegComment } from "react-icons/fa";
 import axios from "axios";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
 import { userState } from "../atoms/userAtom";
 
@@ -25,7 +25,7 @@ const BlogPost = ({ post, isFollowing, toggleFollow }) => {
     };
 
     fetchComments();
-  }, [post.postID]);
+  }, [post.id]);
 
   // Function to add a new comment
   const addComment = async () => {
@@ -57,20 +57,19 @@ const BlogPost = ({ post, isFollowing, toggleFollow }) => {
     <div className="px-8 py-4 pb-6 rounded bg-white drop-shadow-md flex flex-col gap-4 max-w-4xl mx-auto">
       <div className="flex justify-between">
         <div className="flex gap-x-2 items-center">
-          <div>
+          <Link to={`/profile/${post.userId}`}>
             <h1 className="text-lg font-medium leading-4">{post.username}</h1>
             <h1 className="text-gray-500">{post.email}</h1>
-          </div>
+          </Link>
 
           {/* Follow user button */}
           {user && user.id !== post.userId && (
             <button
-              className={`border-2 border-solid px-3 py-2 w-28 rounded-3xl font-semibold ${
-                isFollowing
+              className={`border-2 border-solid px-3 py-2 w-28 rounded-3xl font-semibold ${isFollowing
                   ? "border-gray-500 text-gray-500"
                   : "border-blue-500 text-blue-500"
-              }`}
-              onClick={toggleFollow}
+                }`}
+              onClick={() => toggleFollow(post.userId, post.username)}
             >
               {isFollowing ? "Unfollow" : "Follow"}
             </button>
@@ -93,7 +92,7 @@ const BlogPost = ({ post, isFollowing, toggleFollow }) => {
       <div className="border-solid border-t-2 border-b-2 border-gray-300 py-3">
         <ul className="text-gray-500 flex gap-x-2">
           <li>
-            <p className="text-gray-500">{post.datePublished}</p>
+            <p className="text-gray-500">{new Date(post.datePublished).toLocaleString()}</p>
           </li>
           •
           <li>
@@ -135,7 +134,9 @@ const BlogPost = ({ post, isFollowing, toggleFollow }) => {
                   className="bg-gray-100 px-4 py-2 rounded shadow-sm"
                 >
                   <div className="flex justify-between items-center">
-                    <h3 className="font-semibold">{comment.username}</h3>
+                    <Link to={`/profile/${comment.userId}`}>
+                      <h3 className="font-semibold">{comment.username}</h3>
+                    </Link>
                     <p className="text-gray-500 text-sm">{new Date(comment.datePublished).toLocaleString()}</p>
                   </div>
                   <p className="whitespace-pre-wrap mt-2">{comment.content}</p>

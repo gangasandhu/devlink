@@ -45,7 +45,7 @@ const Navbar = () => {
               Home
             </Link>
             <Link
-              to="/codeedit"
+              to="/code-editor"
               className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
             >
               Code Editor
@@ -80,7 +80,7 @@ const Navbar = () => {
                     <ul className="py-2">
                       <li>
                         <Link
-                          to="/profile"
+                          to={`/profile/${user.id}`}
                           className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                           onClick={() => setIsDropdownOpen(false)}
                         >

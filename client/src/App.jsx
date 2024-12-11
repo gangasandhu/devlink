@@ -16,13 +16,13 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useRecoilState } from 'recoil';
 import { userState } from './atoms/userAtom';
-import { postsState } from './atoms/postsAtom';
+import { use } from "react";
+import { useFollowers } from "./atoms/useFollowers";
 
 function App() {
   const [user, setUser] = useRecoilState(userState);
-  const [posts, setPosts] = useRecoilState(postsState); 
+  const { fetchFollowers } = useFollowers();
   
-
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -34,9 +34,14 @@ function App() {
     };
 
     checkSession();
+
     // TODO: for connection to backend
    
   }, []);
+
+  useEffect(() => {
+    fetchFollowers();
+  }, [user]);
 
 
   return (
@@ -45,11 +50,11 @@ function App() {
       <Routes>
         
         <Route path="/" element={<Home />} />
-        {posts && <Route path="/post/:id" element={<ViewPost posts={posts} />} />}
+        <Route path="/post/:id" element={<ViewPost />} />
         <Route path="/auth" element={<AuthPage />} />
       
         <Route path="/code-editor" element={<CodePage />} />
-        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile/:id" element={<ProfilePage />} />
         <Route path="/dashboard" element={<UserPostsPage  />} />
 
         <Route path="/addPost" element={<AddPost />} />
