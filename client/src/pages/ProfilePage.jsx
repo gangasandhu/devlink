@@ -1,62 +1,180 @@
-import React from "react";
-import { useUser } from "../context/UserContext";
-import Avatar from "../components/Avatar";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useParams } from "react-router-dom";
+import axios from "axios";
+import { useRecoilValue } from "recoil";
+import { userState } from "../atoms/userAtom";
+import { usePosts } from "../atoms/usePosts";
+import { useFollowers } from "../atoms/useFollowers";
+import Avatar from "../components/Avatar"; // Avatar component
+import HomePost from "../components/HomePost"; // HomePost component
+
 
 const ProfilePage = () => {
-  const { user } = useUser(); // Fetch user data from context
+  const { id } = useParams();
+  const currentUser = useRecoilValue(userState);
+  const { getPostsByUser } = usePosts();
+  const { followersState, toggleFollow } = useFollowers();
 
-  // Example friends data
-  const friends = [
-    { id: 1, name: "Alice Johnson" },
-    { id: 2, name: "Bob Smith" },
-    { id: 3, name: "Charlie Brown" },
-  ];
+  const [profileUser, setProfileUser] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [followers, setFollowers] = useState([]);
+  const [following, setFollowing] = useState([]);
+  const [activeTab, setActiveTab] = useState("Posts"); // Tabs: "Posts", "Followers", "Following"
+  // Fetch user details and posts
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        const userResponse = await axios.get(`http://localhost:3000/users/${id}`);
+        setProfileUser(userResponse.data);
 
-  if (!user) {
-    return <p className="text-center text-gray-500">User not logged in</p>;
+        const userPosts = await getPostsByUser(id);
+        setPosts(userPosts);
+
+        const userFollowers = await axios.get(`http://localhost:3000/followers/${id}/followers`);
+        const userFollowing = await axios.get(`http://localhost:3000/followers/${id}/following`);
+
+        setFollowers(userFollowers.data);
+        setFollowing(userFollowing.data);
+      } catch (error) {
+        console.error("Failed to load profile data:", error);
+      }
+    };
+
+    fetchProfileData();
+  }, [id]);
+
+
+  if (!profileUser) {
+    return <div>Loading...</div>;
   }
 
-  return (
-    <div className="max-w-4xl mx-auto my-8 p-6">
-      {/* User Card */}
-      <div className="flex items-center bg-white shadow-lg rounded-lg p-6 mb-8">
-        {/* Avatar on the Left */}
-        <Avatar name={user.name} size="lg" />
+  const isFollowing = followersState.following.some((f) => f.id === parseInt(id));
 
-        {/* User Details and Button on the Right */}
-        <div className="ml-6 flex-1">
-          <h1 className="text-2xl font-bold text-gray-800">{user.name}</h1>
-          <p className="text-gray-600">{user.email}</p>
-          <Link
-            to="/user-posts"
-            className="mt-4 inline-block bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded"
-          >
-            View Blog Posts
-          </Link>
+  return (
+    <div className="bg-gray-100 min-h-screen py-10">
+      <div className="max-w-4xl mx-auto">
+        {/* Top Section */}
+        <div className="flex flex-col sm:flex-row justify-around items-center bg-white shadow rounded-lg p-6">
+          {/* Left: Avatar and Username */}
+          <div className="flex items-center gap-6">
+            <Avatar size="xlarge" name={profileUser.username} />
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{profileUser.username}
+                
+
+
+              </h1>
+              <p className="text-sm text-gray-600">{profileUser.email}</p>
+              <p className="text-sm text-gray-500">
+                Joined: {new Date(profileUser.created_at).toLocaleDateString()}
+              </p>
+
+            </div>
+            {currentUser && currentUser.id !== parseInt(id) && (
+                  <button
+                    onClick={() => toggleFollow(parseInt(id), profileUser)}
+                    className={`px-6 py-2 m-2 text-sm rounded-full text-white ${isFollowing ? "bg-gray-500" : "bg-blue-500"
+                      } hover:opacity-90`}
+                  >
+                    {isFollowing ? "Unfollow" : "Follow"}
+                  </button>
+                )}
+          </div>
+
+
+          {/* Right: Stats */}
+          <div className="flex items-center gap-8 mt-6 sm:mt-0">
+            <div className="text-center">
+              <h2 className="text-lg font-bold">{posts.length}</h2>
+              <p className="text-sm text-gray-600">Posts</p>
+            </div>
+            <div className="text-center">
+              <h2 className="text-lg font-bold">{followers.length}</h2>
+              <p className="text-sm text-gray-600">Followers</p>
+            </div>
+            <div className="text-center">
+              <h2 className="text-lg font-bold">{following.length}</h2>
+              <p className="text-sm text-gray-600">Following</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex justify-center mt-8 border-b border-gray-200">
+          {["Posts", "Followers", "Following"].map((tab) => (
+            <button
+              key={tab}
+              className={`px-6 py-2 font-medium ${activeTab === tab
+                ? "border-b-2 border-blue-600 text-blue-600"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {/* Content Section */}
+        <div className="flex justify-center mt-6">
+          {activeTab === "Posts" && (
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800">
+                Recent Posts
+              </h2>
+              {posts.length > 0 ? (
+                <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {posts.map((post) => (
+                    <li key={post.id}>
+                      <HomePost post={post} />
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-600 dark:text-gray-400">No posts yet.</p>
+              )}
+            </div>
+
+          )}
+          {activeTab === "Followers" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {followers.map((follower) => (
+                <Link to={`/profile/${follower.id}`}>
+                  <div
+                    key={follower.id}
+                    className="flex items-center gap-4 bg-white shadow rounded-lg p-4"
+                  >
+                    <Avatar size="small" name={follower.username} />
+                    <div>
+                      <h3 className="font-bold text-gray-900">{follower.username}</h3>
+                      <p className="text-sm text-gray-600">{follower.email}</p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+          {activeTab === "Following" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {following.map((followedUser) => (
+                <Link to={`/profile/${followedUser.id}`}>
+                  <div
+                    key={followedUser.id}
+                    className="flex items-center gap-4 bg-white shadow rounded-lg p-4"
+                  >
+                    <Avatar size="small" name={followedUser.username} />
+                    <div>
+                      <h3 className="font-bold text-gray-900">{followedUser.username}</h3>
+                      <p className="text-sm text-gray-600">{followedUser.email}</p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-      
-      {/* Friends Section */}
-      <div className="bg-white shadow-lg rounded-lg p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">Friends</h2>
-        {friends.length > 0 ? (
-          <ul className="space-y-4">
-            {friends.map((friend) => (
-              <li
-                key={friend.id}
-                className="flex items-center space-x-4 p-4 border rounded-lg hover:shadow"
-              >
-                <Avatar name={friend.name} />
-                <p className="text-gray-700 font-medium">{friend.name}</p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-gray-500">No friends found</p>
-        )}
-      </div>
-    </div>
+    </div >
   );
 };
 

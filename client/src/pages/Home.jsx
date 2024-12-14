@@ -1,44 +1,58 @@
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useRecoilValue } from "recoil";
+import { userState } from "../atoms/userAtom";
+import { postsState } from "../atoms/postsAtom";
+import HeroSection from "../components/HeroSection";
+import SearchBar from "../components/SearchBar";
 import HomePost from "../components/HomePost";
 import { Link } from "react-router-dom";
 import { IoMdAddCircle } from "react-icons/io";
-import axios from "axios";
-import { useUser } from "../context/UserContext";
 
-const Home = ({posts}) => {
-  const { user, setUser } = useUser(); // User context
-  
+const Home = () => {
+  const user = useRecoilValue(userState);
+  const posts = useRecoilValue(postsState);
 
-  // TODO: for connection to backend
-  // if (loading) return <div>Loading...</div>;
-  // if (error) return <div>{error}</div>;
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchType, setSearchType] = useState("title"); // "title" or "author"
+
+  // Filter posts based on search query and type
+  const filteredPosts = posts.filter((post) => {
+    if (searchType === "title") {
+      return post.title.toLowerCase().includes(searchQuery.toLowerCase());
+    } else if (searchType === "author") {
+      return post.username.toLowerCase().includes(searchQuery.toLowerCase());
+    }
+    return true;
+  });
 
   return (
-    <div className="p-6">
-      <div className="text-center py-10">
-        <h1 className="text-4xl font-extrabold text-gray-800">DevLink</h1>
-        <h3 className="text-2xl font-thin">Explore</h3>
+    <div className="bg-gray-100 min-h-screen">
+      {/* Hero Section */}
+      <HeroSection user={user} />
+
+      {/* Search Bar */}
+      <SearchBar
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        searchType={searchType}
+        setSearchType={setSearchType}
+      />
+
+      {/* Posts Section */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          {filteredPosts.length > 0 ? (
+            filteredPosts.map((post) => (
+              <li key={post.id} className="col-span-1">
+                <HomePost post={post} />
+              </li>
+            ))
+          ) : (
+            <p className="col-span-full text-gray-500 text-center">No posts found</p>
+          )}
+        </ul>
       </div>
-
-      <ul className="p-4 flex flex-wrap gap-4 justify-center">
-        {user && <li>
-          {/* Link to add a new post */}
-          <Link to="/addPost">
-            <button className="px-4 py-3 rounded border-2 border-blue-400 flex gap-x-2 w-96 h-full text-blue-400 justify-center items-center">
-              Add a post <IoMdAddCircle className="text-3xl" />
-            </button>
-          </Link>
-        </li>}
-
-        {/* All of the posts */}
-        {posts && posts.map((post) => (
-          <li key={post.postID}>
-            <Link to={`/ViewPost/${post.postID}`}>
-              <HomePost post={post} />
-            </Link>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 };

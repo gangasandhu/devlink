@@ -1,64 +1,167 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useUser } from "../context/UserContext"; // Assuming you have UserContext for user info
+import { useRecoilValue } from "recoil";
+import { userState } from "../atoms/userAtom";
+import { usePosts } from "../atoms/usePosts";
 
-const UserPostsPage = ({posts, deletePost}) => {
-    const { user } = useUser(); // Get logged-in user details
-    
+const UserPostsPage = () => {
+  const user = useRecoilValue(userState); // Access user state via Recoil
+  const { deletePost, getPostsByUser } = usePosts(); // Access deletePost and getPostsByUser functions
 
-    const [userPosts, setUserPosts] = useState([]); // Local state for user's posts
+  const [userPosts, setUserPosts] = useState([]); // Local state for user's posts
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState(null); // Error state
 
-    // Filter posts by logged-in user
-    useEffect(() => {
-        if (user) {
-            const filteredPosts = posts.filter((post) => post.userID === user.userID);
-            setUserPosts(filteredPosts);
+  // Fetch user's posts from API
+  useEffect(() => {
+    const fetchUserPosts = async () => {
+      if (user) {
+        try {
+          const posts = await getPostsByUser(user.id); // Fetch posts by user ID
+          setUserPosts(posts);
+        } catch (err) {
+          console.error("Failed to fetch user posts:", err);
+          setError("Failed to load posts. Please try again later.");
+        } finally {
+          setLoading(false);
         }
-    }, [user, posts]);
+      } else {
+        setLoading(false);
+      }
+    };
 
-    // Handle Delete Post
-   
+    fetchUserPosts();
+  }, [user, getPostsByUser]);
 
+  // Render loading state
+  if (loading) {
     return (
-        <div className="max-w-4xl mx-auto my-8 p-6 bg-white shadow-lg rounded-lg">
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">Your Blog Posts</h1>
-
-            {userPosts.length > 0 ? (
-                <ul className="space-y-4">
-                    {userPosts.map((post) => (
-                        <li
-                            key={post.postID}
-                            className="p-4 border rounded-lg shadow hover:shadow-md"
-                        >
-                            <div className="flex justify-between items-center">
-                                <h3 className="text-lg font-semibold text-gray-800">{post.title}</h3>
-                                <div className="space-x-2">
-                                    <Link
-                                        to={`/editpost/${post.postID}`}
-                                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
-                                    >
-                                        Edit
-                                    </Link>
-                                    <button
-                                        onClick={() => deletePost(post.postID)}
-                                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>
-                            <p className="text-gray-600 mt-2">{post.content}</p>
-                            <p className="text-gray-400 text-sm mt-1">
-                                Published on: {post.datePublished}
-                            </p>
-                        </li>
-                    ))}
-                </ul>
-            ) : (
-                <p className="text-gray-500">You have not created any posts yet.</p>
-            )}
-        </div>
+      <div className="max-w-5xl mx-auto my-8 p-6 bg-white shadow-lg rounded-lg">
+        <p className="text-gray-500">Loading your posts...</p>
+      </div>
     );
+  }
+
+  // Render error state
+  if (error) {
+    return (
+      <div className="max-w-5xl mx-auto my-8 p-6 bg-white shadow-lg rounded-lg">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto my-8 p-6 bg-gray-100">
+      {/* Dashboard Header */}
+      <div className="bg-white shadow rounded-lg p-6 mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
+          <p className="text-gray-600 mt-1">Manage your posts and see an overview of your activity.</p>
+        </div>
+        <Link
+          to="/addPost"
+          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg"
+        >
+          + New Post
+        </Link>
+      </div>
+
+      {/* Analytics Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white p-6 shadow rounded-lg text-center">
+          <h2 className="text-2xl font-bold text-gray-800">{userPosts.length}</h2>
+          <p className="text-gray-600">Total Posts</p>
+        </div>
+        <div className="bg-white p-6 shadow rounded-lg text-center">
+          <h2 className="text-2xl font-bold text-gray-800">
+            {userPosts.reduce((acc, post) => acc + (post.views || 0), 0)}
+          </h2>
+          <p className="text-gray-600">Total Views</p>
+        </div>
+        <div className="bg-white p-6 shadow rounded-lg text-center">
+          <h2 className="text-2xl font-bold text-gray-800">
+            {userPosts.reduce((acc, post) => acc + (post.comments || []).length, 0)}
+          </h2>
+          <p className="text-gray-600">Total Comments</p>
+        </div>
+      </div>
+
+      {/* Recent Activity */}
+      <div className="bg-white shadow rounded-lg p-6 mb-8">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Recent Activity</h2>
+        <table className="table-auto w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b">
+              <th className="py-2 px-4">Title</th>
+              <th className="py-2 px-4">Published</th>
+              <th className="py-2 px-4">Views</th>
+              <th className="py-2 px-4">Comments</th>
+              <th className="py-2 px-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {userPosts.map((post) => (
+              <tr key={post.id} className="border-b hover:bg-gray-50">
+                <td className="py-2 px-4">{post.title}</td>
+                <td className="py-2 px-4">{new Date(post.datePublished).toLocaleDateString()}</td>
+                <td className="py-2 px-4">{post.views || 0}</td>
+                <td className="py-2 px-4">{(post.comments || []).length}</td>
+                <td className="py-2 px-4 space-x-2">
+                  <Link
+                    to={`/editpost/${post.id}`}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
+                  >
+                    Edit
+                  </Link>
+                  <button
+                    onClick={() => deletePost(post.id)}
+                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {userPosts.length === 0 && (
+          <p className="text-gray-500 text-center mt-4">No recent posts to show.</p>
+        )}
+      </div>
+
+      {/* Quick Links */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-blue-100 p-6 shadow rounded-lg">
+          <h3 className="text-lg font-bold text-blue-600 mb-2">How to Write Better Posts</h3>
+          <p className="text-gray-600 text-sm">
+            Learn how to structure and optimize your blog posts for better engagement.
+          </p>
+          <Link to="/guides/writing-tips" className="text-blue-500 hover:underline mt-2 block">
+            Learn More →
+          </Link>
+        </div>
+        <div className="bg-green-100 p-6 shadow rounded-lg">
+          <h3 className="text-lg font-bold text-green-600 mb-2">Analyze Post Performance</h3>
+          <p className="text-gray-600 text-sm">
+            Use our analytics tools to track the performance of your posts.
+          </p>
+          <Link to="/analytics" className="text-green-500 hover:underline mt-2 block">
+            View Analytics →
+          </Link>
+        </div>
+        <div className="bg-yellow-100 p-6 shadow rounded-lg">
+          <h3 className="text-lg font-bold text-yellow-600 mb-2">Create New Content</h3>
+          <p className="text-gray-600 text-sm">
+            Ready to share more with your audience? Start writing a new post now!
+          </p>
+          <Link to="/addPost" className="text-yellow-500 hover:underline mt-2 block">
+            Start Writing →
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default UserPostsPage;

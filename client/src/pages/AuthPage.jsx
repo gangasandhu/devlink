@@ -1,24 +1,19 @@
-// src/pages/AuthPage.jsx
 import React, { useState } from "react";
-import { useUser } from "../context/UserContext";
-import { useNavigate } from "react-router-dom"
+import { useRecoilState } from "recoil";
+import { userState } from "../atoms/userAtom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import LogoIcon from "../assets/LogoIcon";
+
+axios.defaults.withCredentials = true; // Include credentials (cookies) in all requests
 
 const AuthPage = () => {
-  const { setUser } = useUser(); // Only updates user data
-
-
-  const [isLogin, setIsLogin] = useState(true); // Toggle between login and register
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-  });
-  const [loading, setLoading] = useState(false); // Show loading state during API call
-  const [error, setError] = useState(""); // Show error messages
-
-  const navigate = useNavigate(); // Initialize navigate
-
+  const [user, setUser] = useRecoilState(userState); // Global user state
+  const [isLogin, setIsLogin] = useState(true);
+  const [formData, setFormData] = useState({ username: "", email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleToggle = () => {
     setIsLogin((prev) => !prev);
@@ -31,144 +26,113 @@ const AuthPage = () => {
     setLoading(true);
     setError("");
 
+    const endpoint = isLogin ? "http://localhost:3000/auth/login" : "http://localhost:3000/auth/register";
+
     try {
-      // Placeholder for API call
-      if (isLogin) {
-        // API call to login endpoint
-        const response = await axios.get("http://localhost/cpsc2221/users");
-        const users = response.data;
-      
-        console.log(formData)
-        // Find the user with matching email and password
-        const matchedUser = users.find(
-          (user) =>
-            user.email.toLowerCase() === formData.email.toLowerCase() &&
-            user.password === formData.password
-        );
-        console.log(matchedUser)
-
-        if (matchedUser) {
-          // On successful login, set user context
-          setUser({
-            userID: matchedUser.userID,
-            name: matchedUser.username,
-            email: matchedUser.email,
-          });
-          alert("Logged in successfully!");
-          navigate("/"); // Redirect to home
-        } else {
-          // Invalid email or password
-          setError("Invalid email or password.");
-        }
-      } else {
-        // API call to register endpoint
-        const id = Math.floor(Math.random() * 1_000_000);
-        console.log("Calling register API with:", { ...formData, userID: id, userType: 'member' });
-        const response = await axios.post('http://localhost/cpsc2221/users', { ...formData, userID: id, userType: 'member', interest: 'programming', verified: 0 });
-        // On successful registration:
-        setUser({ userID: id, name: formData.username, email: formData.email }); // Replace with response data
-
-      }
-
-      navigate("/");
+      const { data } = await axios.post(endpoint, formData);
+      setUser(data.user); // Update global user state with user information
+      navigate("/"); // Redirect to the main page after successful login/register
     } catch (err) {
-      // Handle errors
-      setError("An error occurred. Please try again."); // Replace with actual error message
+      const message = err.response?.data?.message || "An error occurred. Please try again.";
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 max-w-sm w-full">
-        <h2 className="text-2xl font-bold mb-6 text-center">
-          {isLogin ? "Login" : "Register"}
-        </h2>
-        <form onSubmit={handleSubmit}>
-          {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+      <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8">
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <LogoIcon className="h-12 w-12" />
+        </div>
 
-          {/* Name Field for Register */}
+        {/* Title */}
+        <h2 className="text-2xl font-bold text-center text-gray-800">
+          {isLogin ? "Welcome Back!" : "Join DevLink"}
+        </h2>
+        <p className="text-sm text-center text-gray-600 mt-2">
+          {isLogin ? "Login to access your account" : "Create an account to start sharing your ideas"}
+        </p>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6 mt-6">
           {!isLogin && (
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">
-                Name
-              </label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Name</label>
               <input
                 type="text"
                 name="username"
                 value={formData.username}
-                onChange={handleChange}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                 placeholder="Enter your name"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"
                 required
+                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           )}
 
-          {/* Email Field */}
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Email
-            </label>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Email</label>
             <input
               type="email"
               name="email"
               value={formData.email}
-              onChange={handleChange}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               placeholder="Enter your email"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"
               required
+              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
-          {/* Password Field */}
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Password
-            </label>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Password</label>
             <input
               type="password"
               name="password"
               value={formData.password}
-              onChange={handleChange}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               placeholder="Enter your password"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"
               required
+              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
-          {/* Submit Button */}
-          <div>
-            <button
-              type="submit"
-              className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              disabled={loading}
-            >
-              {loading ? "Processing..." : isLogin ? "Login" : "Register"}
-            </button>
-          </div>
+          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+
+          <button
+            type="submit"
+            className={`w-full py-3 text-white rounded-lg text-sm font-semibold ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            }`}
+            disabled={loading}
+          >
+            {loading ? "Processing..." : isLogin ? "Login" : "Register"}
+          </button>
         </form>
 
-        {/* Toggle Button */}
-        <div className="mt-4 text-center">
+        {/* Toggle */}
+        <div className="text-center mt-6">
           <p className="text-sm text-gray-600">
             {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
             <button
+              type="button"
               onClick={handleToggle}
-              className="text-blue-500 hover:underline"
-              disabled={loading}
+              className="text-blue-600 hover:underline focus:outline-none"
             >
               {isLogin ? "Register" : "Login"}
             </button>
           </p>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="text-center text-gray-500 text-xs mt-4">
+        © {new Date().getFullYear()} DevLink. All rights reserved.
+      </footer>
     </div>
   );
 };

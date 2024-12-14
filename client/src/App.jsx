@@ -14,71 +14,34 @@ import AddPost from "./pages/AddPost";
 
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useRecoilState } from 'recoil';
+import { userState } from './atoms/userAtom';
+import { use } from "react";
+import { useFollowers } from "./atoms/useFollowers";
 
 function App() {
-
-  const [posts, setPosts] = useState(null);
-  // TODO: for connection to backend
-  // const [loading, setLoading] = useState(true);
-  // const [error, setError] = useState(null);
-
-  // TODO: for connection to backend
-  /**
-   * Assuming this backend API structure
-   * [
-  {
-    "postID": 1,
-    "title": "Post Title 1",
-    "content": "Lorem ipsum...",
-    "datePublished": "2024-11-23",
-    "userID": 1,
-    "username": "@user1",
-    "email": "user1@email.com",
-    "postType": "Article",
-    "contentType": "Text"
-  },
-  ...
-]
-   */
-
+  const [user, setUser] = useRecoilState(userState);
+  const { fetchFollowers } = useFollowers();
+  
   useEffect(() => {
-    // TODO: for connection to backend
-    const fetchPosts = async () => {
+    const checkSession = async () => {
       try {
-       
-        const response = await axios.get("http://localhost:3000/posts");
-        setPosts(response.data);
-        
+        const response = await axios.get('http://localhost:3000/auth/check-session');
+        setUser(response.data.user);
       } catch (err) {
-       
-        console.log(err)
+        setUser(null);
       }
     };
-    fetchPosts();
+
+    checkSession();
+
+    // TODO: for connection to backend
+   
   }, []);
 
-  const addPosts = (post) => {
-    setPosts([...posts, post])
-  }
-
-  const deletePost = async (postID) => {
-    if (window.confirm("Are you sure you want to delete this post?")) {
-        try {
-            // Delete the post from the database
-            alert(postID)
-            await axios.delete(`http://localhost/cpsc2221/posts/${postID}`);
-
-            // Remove the post from the local state
-            const updatedPosts = posts.filter((post) => post.postID !== postID);
-            setPosts(updatedPosts);
-
-            
-        } catch (error) {
-            console.error("Failed to delete post:", error);
-            alert("Failed to delete the post. Please try again.");
-        }
-    }
-};
+  useEffect(() => {
+    fetchFollowers();
+  }, [user]);
 
 
   return (
@@ -86,16 +49,16 @@ function App() {
       <Navbar />
       <Routes>
         
-        <Route path="/" element={<Home posts={posts} />} />
-        {posts && <Route path="/ViewPost/:id" element={<ViewPost posts={posts} />} />}
+        <Route path="/" element={<Home />} />
+        <Route path="/post/:id" element={<ViewPost />} />
         <Route path="/auth" element={<AuthPage />} />
       
-        <Route path="/codeedit" element={<CodePage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/dashboard" element={<UserPostsPage posts={posts} deletePost={deletePost} />} />
+        <Route path="/code-editor" element={<CodePage />} />
+        <Route path="/profile/:id" element={<ProfilePage />} />
+        <Route path="/dashboard" element={<UserPostsPage  />} />
 
-        <Route path="/addPost" element={<AddPost addPosts={addPosts}/>} />
-        <Route path="/EditPost/:id" element={<EditPost posts={posts} setPosts={setPosts} />} />
+        <Route path="/addPost" element={<AddPost />} />
+        <Route path="/editpost/:id" element={<EditPost />} />
         <Route path="/about" element={<AboutPage />} />
 
       </Routes>

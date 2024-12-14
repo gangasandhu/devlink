@@ -13,6 +13,22 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Get a single user
+router.get('/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const [rows] = await db.query('SELECT * FROM users WHERE id = ?', [id]);
+        if (rows.length === 0) {
+            res.status(404).json({ message: 'User not found' });
+        } else {
+            res.status(200).json(rows[0]);
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching user', error });
+    }
+});
+
+
 // Add a new user
 router.post('/', async (req, res) => {
     const { username, email, password } = req.body;
