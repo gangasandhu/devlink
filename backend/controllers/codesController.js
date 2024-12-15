@@ -12,7 +12,8 @@ export const saveCode = async (req, res) => {
       'INSERT INTO codes (userId, content, language, title) VALUES (?, ?, ?, ?)',
       [userId, content, language, title]
     );
-    res.status(201).json({ message: 'Code created successfully', codeId: result.insertId });
+    const savedCode = await getCodeById({ params: { id: result.insertId } }, res);
+    res.status(201).json(savedCode);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Failed to create code' });
@@ -68,7 +69,8 @@ export const updateCode = async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Code not found' });
     }
-    res.status(200).json({ message: 'Code updated successfully' });
+    const updatedCode = await getCodeById({ params: { id } }, res);
+    res.status(200).json(updatedCode);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Failed to update code' });
