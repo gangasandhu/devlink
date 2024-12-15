@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Select from 'react-select';
 import languageOptions from '../constants/languageOptions';
 
-const EditorConfig = ({ handleLanguageChange, changeTheme }) => {
+const EditorConfig = ({ language, handleLanguageChange, changeTheme }) => {
+        
     const [theme, setTheme] = useState('dark'); // State for theme
 
     const handleThemeChange = (selectedOption) => {
@@ -50,12 +51,12 @@ const EditorConfig = ({ handleLanguageChange, changeTheme }) => {
             {/* Language Selection */}
             <div className='flex gap-2'>
                 <div>
-                    
                     <Select
                         placeholder="Select Language"
                         options={languageOptions}
                         styles={customStyles}
-                        defaultValue={languageOptions[0]}
+                        defaultValue={language}
+                        value={language}
                         onChange={(selectedOption) => handleLanguageChange(selectedOption)}
                     />
                 </div>
