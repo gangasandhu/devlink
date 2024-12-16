@@ -16,12 +16,13 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useRecoilState } from 'recoil';
 import { userState } from './atoms/userAtom';
-import { use } from "react";
+import { usePosts } from "./atoms/usePosts";
 import { useFollowers } from "./atoms/useFollowers";
 
 function App() {
   const [user, setUser] = useRecoilState(userState);
   const { fetchFollowers } = useFollowers();
+  const { fetchPosts } = usePosts();
   
   useEffect(() => {
     const checkSession = async () => {
@@ -33,16 +34,16 @@ function App() {
       }
     };
 
-    checkSession();
-
-    // TODO: for connection to backend
-   
+    checkSession();   
   }, []);
 
   useEffect(() => {
-    fetchFollowers();
-  }, [user]);
+    fetchPosts();
+    if(user)
+      fetchFollowers();
+  }, []);
 
+  
 
   return (
     <BrowserRouter>

@@ -6,6 +6,15 @@ import axios from 'axios';
 export const usePosts = () => {
   const [posts, setPosts] = useRecoilState(postsState);
 
+  const fetchPosts = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/posts');
+      setPosts(response.data);
+    } catch (err) {
+      console.error('Error loading posts:', err);
+    }
+  };
+
   // Function to add a new post
   const addPost = async (newPost) => {
     try {
@@ -72,6 +81,7 @@ export const usePosts = () => {
 
   return {
     posts,
+    fetchPosts,
     addPost,
     deletePost,
     setPosts, // If you need to set posts directly in certain scenarios
