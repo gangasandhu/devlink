@@ -7,6 +7,7 @@ import authRoutes from './routes/authRoutes.js';
 import commentsRouter from './routes/commentsRouter.js';
 import followersRouter from './routes/followersRouter.js';
 import codesRouter from './routes/codesRouter.js';
+import likesRouter from './routes/likesRouter.js';
 
 const app = express();
 
@@ -26,8 +27,10 @@ app.use('/posts', postRoutes);
 app.use('/users', userRoutes);
 app.use('/auth', authRoutes);
 app.use('/comments', commentsRouter);
+app.use('/likes', likesRouter);
 app.use('/followers', followersRouter);
 app.use('/codes', codesRouter);
+
 
 
 // Start Server

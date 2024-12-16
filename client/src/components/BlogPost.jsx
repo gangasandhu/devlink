@@ -1,9 +1,13 @@
-import { IoIosMore } from "react-icons/io";
+// icons
+import { CiEdit } from "react-icons/ci";
 import { FaRegComment } from "react-icons/fa";
+import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
 import { userState } from "../atoms/userAtom";
+import { postsState } from "../atoms/postsAtom";
 import axios from "axios";
 import Comments from "./Comments";
 import Avatar from "./Avatar";
@@ -11,8 +15,10 @@ import Avatar from "./Avatar";
 const BlogPost = ({ post, isFollowing, toggleFollow }) => {
   const navigate = useNavigate();
   const [user] = useRecoilState(userState);
+  const [posts, setPosts] = useRecoilState(postsState);
 
   const [comments, setComments] = useState([]); // State for comments
+  const [isLiked, setIsLiked] = useState(false); // Like status state
 
 
   // Fetch comments when the component mounts
@@ -26,9 +32,43 @@ const BlogPost = ({ post, isFollowing, toggleFollow }) => {
       }
     };
 
+    const checkLikeStatus = async () => {
+      try {
+        const response = await axios.get(`http://localhost:3000/likes/check/${post.id}`, {
+          params: { userId: user.id },
+        });
+        setIsLiked(response.data.isLiked);
+      } catch (error) {
+        console.error("Failed to check like status:", error);
+      }
+    };
+
     fetchComments();
+    if (user) {
+      checkLikeStatus();
+    }
+
   }, [post.id]);
 
+  // Toggle like functionality
+  const handleToggleLike = async () => {
+    try {
+      await axios.post(`http://localhost:3000/likes/toggle`, { postId: post.id, userId: user.id });
+      setIsLiked((prev) => !prev);
+      // setLikes((prev) => isLiked ? prev - 1 : prev + 1);
+      setPosts((prevPosts) => {
+        return prevPosts.map((p) => {
+          if (p.id === post.id) {
+            return { ...p, likesCount: isLiked ? post.likesCount - 1 : post.likesCount + 1 };
+          }
+          return p;
+        })
+      });
+
+    } catch (error) {
+      console.error("Failed to toggle like:", error);
+    }
+  };
 
 
 
@@ -45,6 +85,14 @@ const BlogPost = ({ post, isFollowing, toggleFollow }) => {
         content: newComment,
       });
       setComments((prevComments) => [...prevComments, response.data]);
+      setPosts((prevPosts) => {
+        return prevPosts.map((p) => {
+          if (p.id === post.id) {
+            return { ...p, commentsCount: p.commentsCount + 1 };
+          }
+          return p;
+        })
+      });
     } catch (error) {
       console.error("Failed to add comment:", error);
       alert("Failed to add comment. Please try again.");
@@ -80,11 +128,22 @@ const BlogPost = ({ post, isFollowing, toggleFollow }) => {
               {isFollowing ? "Unfollow" : "Follow"}
             </button>
           )}
+
           {user && user.id === post.userId && (
             <button onClick={handleEdit} className="text-gray-500 hover:text-gray-800">
-              <IoIosMore size={24} />
+              <CiEdit size={32} />
             </button>
           )}
+          {/* Like Button */}
+          <button onClick={handleToggleLike} className="flex items-center gap-2">
+            {isLiked ? (
+              <AiFillHeart className="text-red-500 text-2xl" />
+            ) : (
+              <AiOutlineHeart className="text-gray-500 text-2xl" />
+            )}
+            <span className="text-gray-600">{post.likesCount}</span>
+          </button>
+
         </div>
 
         {/* Post Content */}
