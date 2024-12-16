@@ -75,13 +75,13 @@ const UserPostsPage = () => {
         </div>
         <div className="bg-white p-6 shadow rounded-lg text-center">
           <h2 className="text-2xl font-bold text-gray-800">
-            {userPosts.reduce((acc, post) => acc + (post.views || 0), 0)}
+            {userPosts.reduce((acc, post) => acc + (post.likesCount || 0), 0)}
           </h2>
-          <p className="text-gray-600">Total Views</p>
+          <p className="text-gray-600">Total Likes</p>
         </div>
         <div className="bg-white p-6 shadow rounded-lg text-center">
           <h2 className="text-2xl font-bold text-gray-800">
-            {userPosts.reduce((acc, post) => acc + (post.comments || []).length, 0)}
+            {userPosts.reduce((acc, post) => acc + (post.commentsCount || 0), 0)}
           </h2>
           <p className="text-gray-600">Total Comments</p>
         </div>
@@ -95,7 +95,7 @@ const UserPostsPage = () => {
             <tr className="border-b">
               <th className="py-2 px-4">Title</th>
               <th className="py-2 px-4">Published</th>
-              <th className="py-2 px-4">Views</th>
+              <th className="py-2 px-4">Likes</th>
               <th className="py-2 px-4">Comments</th>
               <th className="py-2 px-4">Actions</th>
             </tr>
@@ -105,8 +105,8 @@ const UserPostsPage = () => {
               <tr key={post.id} className="border-b hover:bg-gray-50">
                 <td className="py-2 px-4">{post.title}</td>
                 <td className="py-2 px-4">{new Date(post.datePublished).toLocaleDateString()}</td>
-                <td className="py-2 px-4">{post.views || 0}</td>
-                <td className="py-2 px-4">{(post.comments || []).length}</td>
+                <td className="py-2 px-4">{post.likesCount || 0}</td>
+                <td className="py-2 px-4">{post.commentsCount || 0}</td>
                 <td className="py-2 px-4 space-x-2">
                   <Link
                     to={`/editpost/${post.id}`}

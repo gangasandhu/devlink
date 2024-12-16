@@ -69,3 +69,28 @@ export const getLikesCount = async (req, res) => {
         return res.status(500).json({ error: 'Failed to fetch likes count. Please try again.' });
     }
 };
+
+// this function should give me the numbers of likes on all the posts posted by a user
+export const getLikesCountOnUserPosts = async (req, res) => {
+    const { userId } = req.params;
+  
+    try {
+      const query = `
+        SELECT COUNT(l.id) AS totalLikes
+        FROM posts p
+        LEFT JOIN likes l ON p.id = l.postId
+        WHERE p.userId = ?;
+      `;
+  
+      // Query database to get likes count for all posts by the user
+      const [result] = await db.execute(query, [userId]);
+  
+      // Extract the totalLikes count
+      const totalLikes = result[0]?.totalLikes || 0;
+  
+      return res.status(200).json({ totalLikes });
+    } catch (error) {
+      console.error("Error fetching likes count by user:", error);
+      return res.status(500).json({ message: "Server error. Please try again." });
+    }
+  };
