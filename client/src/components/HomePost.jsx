@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import Avatar from "./Avatar";
 
 const HomePost = ({ post }) => {
+
   // Function to truncate text
   const truncateText = (text, maxLength) => {
     if (text.length > maxLength) {
@@ -38,7 +41,7 @@ const HomePost = ({ post }) => {
       {/* Footer */}
       <div className="flex items-center justify-between text-sm text-gray-500">
           Read more
-        <p>{post.commentsCount || 0} comments</p>
+          <p>{post.likesCount} {post.likesCount === 1 ? "like" : "likes"}</p>
       </div>
       </Link>
     </div>

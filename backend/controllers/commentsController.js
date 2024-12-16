@@ -87,3 +87,29 @@ export const deleteComment = async (req, res) => {
         res.status(500).json({ message: 'Error deleting comment.', error });
     }
 };
+
+
+// controller to get comments count on the posts posted by a user
+export const getCommentsCountOnUserPosts = async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        const query = `
+          SELECT COUNT(c.id) AS totalComments
+          FROM posts p
+          LEFT JOIN comments c ON p.id = c.postId
+          WHERE p.userId = ?;
+        `;
+
+        // Query database to get comments count for all posts by the user
+        const [result] = await db.execute(query, [userId]);
+
+        // Extract the totalComments count
+        const totalComments = result[0]?.totalComments || 0;
+
+        return res.status(200).json({ totalComments });
+    } catch (error) {
+        console.error("Error fetching comments count by user:", error);
+        return res.status(500).json({ message: "Server error. Please try again." });
+    }
+};

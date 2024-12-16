@@ -6,7 +6,12 @@ export const getAllPosts = async (req, res) => {
 
     try {
         let query = `
-            SELECT posts.*, users.username, users.email
+            SELECT 
+                posts.*, 
+                users.username, 
+                users.email,
+                (SELECT COUNT(*) FROM likes WHERE likes.postId = posts.id) AS likesCount,
+                (SELECT COUNT(*) FROM comments WHERE comments.postId = posts.id) AS commentsCount
             FROM posts
             INNER JOIN users ON posts.userId = users.id
         `;
@@ -35,7 +40,12 @@ export const getPostById = async (req, res) => {
     const { id } = req.params;
     try {
         const [rows] = await db.query(`
-            SELECT posts.*, users.username, users.email
+            SELECT 
+                posts.*, 
+                users.username, 
+                users.email,
+                (SELECT COUNT(*) FROM likes WHERE likes.postId = posts.id) AS likesCount,
+                (SELECT COUNT(*) FROM comments WHERE comments.postId = posts.id) AS commentsCount
             FROM posts
             INNER JOIN users ON posts.userId = users.id
             WHERE posts.id = ?
