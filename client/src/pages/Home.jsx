@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRecoilValue } from "recoil";
 import { userState } from "../atoms/userAtom";
 import { postsState } from "../atoms/postsAtom";
@@ -12,18 +12,27 @@ const Home = () => {
   const user = useRecoilValue(userState);
   const posts = useRecoilValue(postsState);
 
+
+  const [filteredPosts, setFilteredPosts] = useState(posts);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchType, setSearchType] = useState("title"); // "title" or "author"
 
   // Filter posts based on search query and type
-  const filteredPosts = posts.filter((post) => {
-    if (searchType === "title") {
-      return post.title.toLowerCase().includes(searchQuery.toLowerCase());
-    } else if (searchType === "author") {
-      return post.username.toLowerCase().includes(searchQuery.toLowerCase());
+  useEffect(() => {
+    const filterPosts = () => {
+      const filteredPosts = posts.filter((post) => {
+        if (searchType === "title") {
+          return post.title.toLowerCase().includes(searchQuery.toLowerCase());
+        } else if (searchType === "author") {
+          return post.username.toLowerCase().includes(searchQuery.toLowerCase());
+        }
+        return true;
+      });
+
+      setFilteredPosts(filteredPosts);
     }
-    return true;
-  });
+    filterPosts();
+  }, [posts]);
 
   return (
     <div className="bg-gray-100 min-h-screen">
