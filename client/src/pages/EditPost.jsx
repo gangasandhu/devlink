@@ -1,15 +1,22 @@
+// src/pages/EditPost.js
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useRecoilValue, useRecoilState } from "recoil";
+import { userState } from "../atoms/userAtom";
+import { postsState } from "../atoms/postsAtom";
 import { usePosts } from "../atoms/usePosts";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+import { Editor } from "primereact/editor";
+
 const EditPost = () => {
   const { id } = useParams(); // Get the post ID from the URL
   const navigate = useNavigate();
+  const user = useRecoilValue(userState); // Access user state via Recoil
   const { getPostById, updatePost } = usePosts(); // Use `getPostById` and `updatePost` functions
+  const [posts, setPosts] = useRecoilState(postsState);
 
-  const [post, setPost] = useState(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
@@ -19,7 +26,17 @@ const EditPost = () => {
     const fetchPost = async () => {
       try {
         const fetchedPost = await getPostById(id); // Fetch post by ID
-        setPost(fetchedPost);
+        if (!fetchedPost) {
+          toast.error("Post not found. Redirecting...");
+          setTimeout(() => navigate("/dashboard"), 3000);
+          return;
+        }
+        // Ensure the user is authorized to edit the post
+        if (user.id !== fetchedPost.userId) {
+          toast.error("You are not authorized to edit this post.");
+          setTimeout(() => navigate("/dashboard"), 3000);
+          return;
+        }
         setTitle(fetchedPost.title || "");
         setContent(fetchedPost.content || "");
       } catch (error) {
@@ -32,23 +49,32 @@ const EditPost = () => {
     };
 
     fetchPost();
-  }, []);
+  }, [user]);
 
   const handleSave = async () => {
-    if (!title || !content) {
+    if (!title.trim() || !content.trim()) {
       toast.error("Please fill out all fields.");
       return;
     }
 
-    const updatedPost = { ...post, title, content };
+    const updatedPost = { title, content };
 
     try {
+      setLoading(true);
       await updatePost(id, updatedPost); // Update the post
+      // Update the post in Recoil state
+      setPosts((prevPosts) =>
+        prevPosts.map((p) => (p.id === id ? { ...p, title, content } : p))
+      );
       toast.success("Post updated successfully!");
-      setTimeout(() => navigate("/dashboard"), 3000); // Redirect after showing success toast
+      setTimeout(() => {
+        navigate("/dashboard"); // Redirect to dashboard
+      }, 3000); // Matches the autoClose duration of the toast
     } catch (error) {
       console.error("Failed to save the post", error);
       toast.error("Failed to save the post. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -101,14 +127,8 @@ const EditPost = () => {
               <label className="block text-lg font-medium text-gray-700 mb-2">
                 Post Content
               </label>
-              <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                rows={10}
-                placeholder="Write your post content here..."
-                required
-              />
+              {/* Integrated TextEditor */}
+              <Editor value={content} onTextChange={(e) => setContent(e.htmlValue)} style={{ minHeight: '320px' }} />
             </div>
 
             {/* Submit Button */}

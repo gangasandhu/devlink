@@ -12,7 +12,12 @@ import axios from "axios";
 import Comments from "./Comments";
 import Avatar from "./Avatar";
 
+import DOMPurify from "dompurify";
+import parse from "html-react-parser";
+import "../styles/post.css";
+
 const BlogPost = ({ post, isFollowing, toggleFollow }) => {
+  console.log(post.content);
   const navigate = useNavigate();
   const [user] = useRecoilState(userState);
   const [posts, setPosts] = useRecoilState(postsState);
@@ -147,9 +152,14 @@ const BlogPost = ({ post, isFollowing, toggleFollow }) => {
         </div>
 
         {/* Post Content */}
-        <div className="px-6 py-6">
+        <div className="px-6 py-6 post-content">
           <h1 className="text-3xl font-bold text-gray-800 mb-4">{post.title}</h1>
-          <p className="text-gray-700 leading-relaxed">{post.content}</p>
+          <div
+            className="text-gray-700 leading-relaxed"
+           >
+            {parse(DOMPurify.sanitize(post.content))}
+          </div>
+      
         </div>
 
         {/* Post Footer */}

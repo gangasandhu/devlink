@@ -1,10 +1,16 @@
+// src/pages/AddPost.js
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRecoilValue } from "recoil";
 import { usePosts } from "../atoms/usePosts";
 import { userState } from "../atoms/userAtom";
 import { toast, ToastContainer } from "react-toastify";
+import { Editor } from "primereact/editor";
+
 import "react-toastify/dist/ReactToastify.css";
+
+// Removed TipTapEditor import since it's not used
+
 
 
 const AddPost = () => {
@@ -16,9 +22,15 @@ const AddPost = () => {
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Redirect to authentication page if user is not logged in
   if (!user) {
     navigate("/auth");
   }
+
+  // Handle content change
+  const handleContent = (value) => {
+    setContent(value);
+  };
 
   const handleSave = async () => {
     if (!title || !content) {
@@ -46,7 +58,6 @@ const AddPost = () => {
       setLoading(false);
     }
   };
-  
 
   return (
     <div className="bg-gray-100 min-h-screen py-10">
@@ -88,14 +99,10 @@ const AddPost = () => {
               <label className="block text-lg font-medium text-gray-700 mb-2">
                 Post Content
               </label>
-              <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                rows={10}
-                placeholder="Write your post content here..."
-                required
-              />
+              {/* Integrated TextEditor */}
+
+              <Editor value={content} onTextChange={(e) => setContent(e.htmlValue)} style={{ minHeight: '320px' }} />
+
             </div>
 
             {/* Submit Button */}
