@@ -24,6 +24,8 @@ services:
       - DB_NAME=devlink
       - PORT=3000
       - JWT_SECRET=myjwtsecret
+    env_file:
+      - ./backend/.env
 
   client:
     image: gangsandhu/devlink-client:latest
@@ -31,7 +33,7 @@ services:
       - backend
     build: ./client
     ports:
-      - "8000:80"
+      - "80:80"
     env_file:
       - ./client/.env
 

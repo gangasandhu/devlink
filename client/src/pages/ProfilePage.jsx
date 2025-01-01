@@ -8,6 +8,9 @@ import { useFollowers } from "../atoms/useFollowers";
 import Avatar from "../components/Avatar"; // Avatar component
 import HomePost from "../components/HomePost"; // HomePost component
 
+const baseURL = import.meta.env.VITE_BACKEND_API_URL
+
+
 
 const ProfilePage = () => {
   const { id } = useParams();
@@ -24,14 +27,14 @@ const ProfilePage = () => {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const userResponse = await axios.get(`http://localhost:3000/users/${id}`);
+        const userResponse = await axios.get(`${baseURL}/users/${id}`);
         setProfileUser(userResponse.data);
 
         const userPosts = await getPostsByUser(id);
         setPosts(userPosts);
 
-        const userFollowers = await axios.get(`http://localhost:3000/followers/${id}/followers`);
-        const userFollowing = await axios.get(`http://localhost:3000/followers/${id}/following`);
+        const userFollowers = await axios.get(`${baseURL}/followers/${id}/followers`);
+        const userFollowing = await axios.get(`${baseURL}/followers/${id}/following`);
 
         setFollowers(userFollowers.data);
         setFollowing(userFollowing.data);

@@ -12,6 +12,8 @@ import axios from "axios";
 import Comments from "./Comments";
 import Avatar from "./Avatar";
 
+const baseURL = import.meta.env.VITE_BACKEND_API_URL
+
 const BlogPost = ({ post, isFollowing, toggleFollow }) => {
   const navigate = useNavigate();
   const [user] = useRecoilState(userState);
@@ -25,7 +27,7 @@ const BlogPost = ({ post, isFollowing, toggleFollow }) => {
   useEffect(() => {
     const fetchComments = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/comments/${post.id}`);
+        const response = await axios.get(`${baseURL}/comments/${post.id}`);
         setComments(response.data);
       } catch (error) {
         console.error("Failed to fetch comments:", error);
@@ -34,7 +36,7 @@ const BlogPost = ({ post, isFollowing, toggleFollow }) => {
 
     const checkLikeStatus = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/likes/check/${post.id}`, {
+        const response = await axios.get(`${baseURL}/likes/check/${post.id}`, {
           params: { userId: user.id },
         });
         setIsLiked(response.data.isLiked);
@@ -53,7 +55,7 @@ const BlogPost = ({ post, isFollowing, toggleFollow }) => {
   // Toggle like functionality
   const handleToggleLike = async () => {
     try {
-      await axios.post(`http://localhost:3000/likes/toggle`, { postId: post.id, userId: user.id });
+      await axios.post(`${baseURL}/likes/toggle`, { postId: post.id, userId: user.id });
       setIsLiked((prev) => !prev);
       // setLikes((prev) => isLiked ? prev - 1 : prev + 1);
       setPosts((prevPosts) => {
@@ -79,7 +81,7 @@ const BlogPost = ({ post, isFollowing, toggleFollow }) => {
     }
 
     try {
-      const response = await axios.post("http://localhost:3000/comments", {
+      const response = await axios.post(`${baseURL}/comments`, {
         postId: post.id,
         userId: user.id,
         content: newComment,

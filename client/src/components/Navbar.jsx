@@ -10,6 +10,9 @@ import MenuIcon from "../assets/MenuIcon.jsx";
 import CloseIcon from "../assets/CloseIcon.jsx";
 import LogoIcon from "../assets/LogoIcon.jsx"; // Custom DevLink logo
 
+const baseURL = import.meta.env.VITE_BACKEND_API_URL
+
+
 const Navbar = () => {
   const [user, setUser] = useRecoilState(userState); // User state
   const [isMenuOpen, setIsMenuOpen] = useState(false); // Mobile menu state
@@ -18,7 +21,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.post("http://localhost:3000/auth/logout", {}, { withCredentials: true });
+      await axios.post(`${baseURL}/auth/logout`, {}, { withCredentials: true });
       setUser(null);
       navigate("/auth");
     } catch (err) {

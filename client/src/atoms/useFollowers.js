@@ -4,6 +4,9 @@ import { followersAtom } from "../atoms/followersAtom";
 import { userState } from "../atoms/userAtom";
 import axios from "axios";
 
+const baseURL = import.meta.env.VITE_BACKEND_API_URL
+
+
 export const useFollowers = () => {
   const currentUser = useRecoilValue(userState); // Logged-in user
   const [followersState, setFollowersState] = useRecoilState(followersAtom); // Followers atom state
@@ -14,8 +17,8 @@ export const useFollowers = () => {
 
     try {
       const [followersResponse, followingResponse] = await Promise.all([
-        axios.get(`http://localhost:3000/followers/${currentUser.id}/followers`),
-        axios.get(`http://localhost:3000/followers/${currentUser.id}/following`),
+        axios.get(`${baseURL}/followers/${currentUser.id}/followers`),
+        axios.get(`${baseURL}/followers/${currentUser.id}/following`),
       ]);
 
       setFollowersState({
@@ -34,7 +37,7 @@ export const useFollowers = () => {
     try {
       if (isFollowing) {
         // Unfollow user
-        await axios.delete(`http://localhost:3000/followers`, {
+        await axios.delete(`${baseURL}/followers`, {
           data: { followerId: currentUser.id, followedId },
         });
         setFollowersState((prev) => ({
@@ -43,7 +46,7 @@ export const useFollowers = () => {
         }));
       } else {
         // Follow user
-        const response = await axios.post(`http://localhost:3000/followers`, {
+        const response = await axios.post(`${baseURL}/followers`, {
           followerId: currentUser.id,
           followedId,
         });

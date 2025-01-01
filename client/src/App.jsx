@@ -19,6 +19,8 @@ import { userState } from './atoms/userAtom';
 import { usePosts } from "./atoms/usePosts";
 import { useFollowers } from "./atoms/useFollowers";
 
+const baseURL = import.meta.env.VITE_BACKEND_API_URL
+
 function App() {
   const [user, setUser] = useRecoilState(userState);
   const { fetchFollowers } = useFollowers();
@@ -27,7 +29,7 @@ function App() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/auth/check-session');
+        const response = await axios.get(`${baseURL}/auth/check-session`);
         setUser(response.data.user);
       } catch (err) {
         setUser(null);

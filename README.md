@@ -9,7 +9,8 @@ create a .env file in client folder with:
 
 ```bash
 VITE_COMPILE_API_KEY="your judge0 api key"
-`VITE_COMPILE_API_URL="your rapid judge0 api url"
+VITE_COMPILE_API_URL="your rapid judge0 api url"
+VITE_BACKEND_API_URL="http://localhost:3000"
 ```
 
 create a .env file in backend folder with:
@@ -21,6 +22,7 @@ DB_PASSWORD='your-password'
 DB_NAME=devlink
 PORT=3000
 JWT_SECRET='your-secret'
+CLIENT_URL=http://localhost
 ```
 
 ## For Production
