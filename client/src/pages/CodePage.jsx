@@ -13,6 +13,8 @@ import SidePanel from "../components/SidePanel";
 // import SlidingPanel from 'react-sliding-side-panel';
 // import { Sidebar, Menu, MenuItem, SubMenu } from 'react-pro-sidebar';
 
+const baseURL = import.meta.env.VITE_BACKEND_API_URL;
+
 const CodePage = () => {
   const user = useRecoilValue(userState);
   const [value, setValue] = useState("");
@@ -29,7 +31,7 @@ const CodePage = () => {
   useEffect(() => {
     const fetchSavedCodes = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/codes/user/${user.id}`);
+        const response = await axios.get(`${baseURL}/codes/user/${user.id}`);
         const codes = response.data;
 
         setUserCodes(codes); // Store fetched codes
@@ -119,7 +121,7 @@ const CodePage = () => {
     try {
       if (code.id) {
         // Update the existing code
-        const response = await axios.put(`http://localhost:3000/codes/${code.id}`, updatedCode);
+        const response = await axios.put(`${baseURL}/codes/${code.id}`, updatedCode);
         showSuccessToast("Code updated successfully!");
         // Update the corresponding code in userCodes
         setUserCodes((prevCodes) =>
@@ -127,7 +129,7 @@ const CodePage = () => {
         );
       } else {
         // Save a new code
-        const response = await axios.post(`http://localhost:3000/codes`, updatedCode);
+        const response = await axios.post(`${baseURL}/codes`, updatedCode);
         setCode(response.data); // Save the new code's data (including its ID)
         showSuccessToast("Code saved successfully!");
 
@@ -159,7 +161,7 @@ const CodePage = () => {
 
   const handleDeleteFile = async (id) => {
     try {
-      await axios.delete(`http://localhost:3000/codes/${id}`);
+      await axios.delete(`${baseURL}/codes/${id}`);
       setUserCodes((prevCodes) => prevCodes.filter((code) => code.id !== id)); // Update local state
       showSuccessToast("File deleted successfully!");
     } catch (error) {
