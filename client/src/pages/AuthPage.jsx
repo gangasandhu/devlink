@@ -7,6 +7,9 @@ import LogoIcon from "../assets/LogoIcon";
 
 axios.defaults.withCredentials = true; // Include credentials (cookies) in all requests
 
+const baseURL = import.meta.env.VITE_BACKEND_API_URL
+
+
 const AuthPage = () => {
   const [user, setUser] = useRecoilState(userState); // Global user state
   const [isLogin, setIsLogin] = useState(true);
@@ -26,7 +29,7 @@ const AuthPage = () => {
     setLoading(true);
     setError("");
 
-    const endpoint = isLogin ? "http://localhost:3000/auth/login" : "http://localhost:3000/auth/register";
+    const endpoint = isLogin ? `${baseURL}/auth/login` : `${baseURL}/auth/register`;
 
     try {
       const { data } = await axios.post(endpoint, formData);

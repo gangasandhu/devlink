@@ -1,3 +1,5 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -13,7 +15,8 @@ const app = express();
 
 // Middleware
 // Configure CORS
-const allowedOrigins = ['http://localhost:8000', 'http://devlink.com', 'htpp://localhost:5173', 'http://localhost']; // Add your frontend's origin here
+const clientURL = process.env.CLIENT_URL;
+const allowedOrigins = [`${clientURL}:8000`,  `${clientURL}:5173`, clientURL]; // Add your frontend's origin here
 
 app.use(cors({
   origin: allowedOrigins,

@@ -2,13 +2,16 @@ import { useRecoilState } from 'recoil';
 import { postsState } from './postsAtom';
 import axios from 'axios';
 
+const baseURL = import.meta.env.VITE_BACKEND_API_URL
+
+
 // Custom hook for managing posts
 export const usePosts = () => {
   const [posts, setPosts] = useRecoilState(postsState);
 
   const fetchPosts = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/posts');
+      const response = await axios.get(`${baseURL}/posts`);
       setPosts(response.data);
     } catch (err) {
       console.error('Error loading posts:', err);
@@ -18,7 +21,7 @@ export const usePosts = () => {
   // Function to add a new post
   const addPost = async (newPost) => {
     try {
-      const response = await axios.post('http://localhost:3000/posts', newPost);
+      const response = await axios.post(`${baseURL}/posts`, newPost);
       setPosts((prevPosts) => [...prevPosts, response.data]);
     } catch (error) {
       console.error('Failed to add post:', error);
@@ -30,7 +33,7 @@ export const usePosts = () => {
   const deletePost = async (postID) => {
     if (window.confirm('Are you sure you want to delete this post?')) {
       try {
-        await axios.delete(`http://localhost:3000/posts/${postID}`);
+        await axios.delete(`${baseURL}/posts/${postID}`);
         setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postID));
       } catch (error) {
         console.error('Failed to delete post:', error);
@@ -42,7 +45,7 @@ export const usePosts = () => {
   // Function to get all posts by a user
   const getPostsByUser = async (userId) => {
     try {
-      const response = await axios.get(`http://localhost:3000/posts?userId=${userId}`);
+      const response = await axios.get(`${baseURL}/posts?userId=${userId}`);
       return response.data; // Returns the posts for the specified user
     } catch (error) {
       console.error('Failed to fetch posts by user:', error);
@@ -53,7 +56,7 @@ export const usePosts = () => {
 
   const getPostById = async (id) => {
     try {
-      const response = await axios.get(`http://localhost:3000/posts/${id}`);
+      const response = await axios.get(`${baseURL}/posts/${id}`);
       return response.data; // Returns the posts for the specified user
     } catch (error) {
       console.error('Failed to fetch the post:', error);
@@ -65,7 +68,7 @@ export const usePosts = () => {
   // Function to update a post
   const updatePost = async (id, updatedPost) => {
     try {
-      await axios.put(`http://localhost:3000/posts/${id}`, updatedPost);
+      await axios.put(`${baseURL}/posts/${id}`, updatedPost);
 
       // Update the local Recoil state
       setPosts((prevPosts) =>
