@@ -13,7 +13,7 @@ const app = express();
 
 // Middleware
 // Configure CORS
-const allowedOrigins = ['http://localhost:5173']; // Add your frontend's origin here
+const allowedOrigins = ['http://localhost:8000', 'http://devlink.com', 'htpp://localhost:5173', 'http://localhost']; // Add your frontend's origin here
 
 app.use(cors({
   origin: allowedOrigins,
