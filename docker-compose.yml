@@ -11,7 +11,7 @@ services:
       - db_data:/var/lib/mysql
 
   backend:
-    image: devlink-backend
+    image: gangsandhu/devlink-backend:latest
     depends_on:
       - db
     build: ./backend
@@ -26,7 +26,7 @@ services:
       - JWT_SECRET=myjwtsecret
 
   client:
-    image: devlink-client
+    image: gangsandhu/devlink-client:latest
     depends_on:
       - backend
     build: ./client
