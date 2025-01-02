@@ -1,6 +1,8 @@
 # devlink
 The project is centred in the technology and content creation space, aiming to provide a platform where users can engage in coding, blogging, and social interactions. It primarily caters to developers, content creators, and tech enthusiasts interested in programming and blogging.
 
+Webiste link: [http://ec2-34-201-150-93.compute-1.amazonaws.com](http://ec2-34-201-150-93.compute-1.amazonaws.com)
+
 # How to run:
 
 clone the repository
@@ -10,7 +12,7 @@ create a .env file in client folder with:
 ```bash
 VITE_COMPILE_API_KEY="your judge0 api key"
 VITE_COMPILE_API_URL="your rapid judge0 api url"
-VITE_BACKEND_API_URL="http://localhost:3000"
+VITE_BACKEND_API_URL="your backend api base url e.b., http://localhost:3000"
 ```
 
 create a .env file in backend folder with:
@@ -58,9 +60,4 @@ npm install
 npm run dev
 ```
 
-## For Production
-
-```bash
-docker compose up -d
-```
 
